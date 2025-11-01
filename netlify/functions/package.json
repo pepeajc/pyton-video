@@ -1,0 +1,16 @@
+{
+  "name": "netlify-functions",
+  "version": "1.0.0",
+  "description": "Funciones para el analizador de video",
+  "main": "capture-frame.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "fluent-ffmpeg": "^2.1.2",
+    "ffmpeg-static": "^5.2.0",
+    "ytdl-core": "^4.11.5"
+  }
+}

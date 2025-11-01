@@ -1,0 +1,11 @@
+# Configuración para Netlify
+
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+# Regla de redirección para las funciones
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200

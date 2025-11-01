@@ -1,0 +1,13 @@
+{
+  "name": "video-analyzer-app",
+  "version": "1.0.0",
+  "description": "Una aplicación para analizar videos de YouTube",
+  "scripts": {
+    "dev": "npx netlify dev"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "netlify-cli": "^17.22.1"
+  }
+}
