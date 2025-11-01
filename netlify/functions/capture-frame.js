@@ -1,16 +1,12 @@
 const ytdl = require('@distube/ytdl-core');
 const ffmpeg = require('fluent-ffmpeg');
 const ffmpegStatic = require('ffmpeg-static');
-const { Writable, Readable } = require('stream');
-const fs = require('fs');
-const os = require('os');
-const path = require('path');
+const { Writable } = require('stream');
 
 // Indicar a fluent-ffmpeg dónde encontrar el ejecutable de ffmpeg
 ffmpeg.setFfmpegPath(ffmpegStatic);
 
 exports.handler = async (event) => {
-    // Parsear los parámetros de la URL de la petición
     const { videoId, timestamp } = event.queryStringParameters;
 
     if (!videoId || !timestamp) {
@@ -23,13 +19,11 @@ exports.handler = async (event) => {
     const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
     try {
-        // Obtener la información del video para asegurarse de que es válido
-        await ytdl.getInfo(videoUrl);
+        const videoStream = ytdl(videoUrl, {
+            filter: 'videoonly',      // Asegurar que obtenemos un stream con video
+            quality: 'highestvideo',  // Seleccionar la mejor calidad de video
+        });
 
-        // Crear un stream de video con ytdl
-        const videoStream = ytdl(videoUrl, { quality: 'highestvideo' });
-
-        // Crear un buffer en memoria para la imagen de salida
         const chunks = [];
         const writable = new Writable({
             write(chunk, encoding, callback) {
@@ -40,15 +34,23 @@ exports.handler = async (event) => {
 
         return new Promise((resolve, reject) => {
             ffmpeg(videoStream)
-                .seekInput(timestamp) // Ir al segundo exacto
-                .frames(1)           // Capturar solo 1 frame
-                .outputFormat('image2')// Formato de imagen
-                .outputOptions('-update 1')
+                .inputOptions([`-ss ${timestamp}`])
+                .outputOptions([
+                    '-vframes 1',
+                    '-f image2',
+                    '-q:v 2',
+                    '-vcodec png'
+                ])
                 .on('end', () => {
-                    // Una vez que ffmpeg ha terminado, el buffer (chunks) contiene la imagen
                     const imageBuffer = Buffer.concat(chunks);
 
-                    // Devolver la imagen en formato base64
+                    if (imageBuffer.length === 0) {
+                        return reject({
+                            statusCode: 500,
+                            body: JSON.stringify({ error: 'FFMpeg no pudo generar la imagen (buffer vacío).' }),
+                        });
+                    }
+
                     resolve({
                         statusCode: 200,
                         headers: { 'Content-Type': 'image/png' },
@@ -63,14 +65,14 @@ exports.handler = async (event) => {
                         body: JSON.stringify({ error: 'Error al procesar el video con FFMpeg.', details: err.message }),
                     });
                 })
-                .pipe(writable, { end: true }); // Enviar la salida de ffmpeg al buffer en memoria
+                .pipe(writable, { end: true });
         });
 
     } catch (error) {
-        console.error('Error al obtener la información del video:', error);
+        console.error('Error al obtener el stream del video:', error);
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: 'Error al obtener la información del video de YouTube.', details: error.message }),
+            body: JSON.stringify({ error: 'Error al obtener el stream del video de YouTube.', details: error.message }),
         };
     }
 };
