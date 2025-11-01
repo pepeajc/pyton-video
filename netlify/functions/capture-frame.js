@@ -1,4 +1,4 @@
-const ytdl = require('@distube/ytdl-core');
+const { Innertube } = require('youtubei.js');
 const ffmpeg = require('fluent-ffmpeg');
 const ffmpegStatic = require('ffmpeg-static');
 const { Writable } = require('stream');
@@ -16,12 +16,18 @@ exports.handler = async (event) => {
         };
     }
 
-    const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-
     try {
-        const videoStream = ytdl(videoUrl, {
-            filter: 'videoonly',      // Asegurar que obtenemos un stream con video
-            quality: 'highestvideo',  // Seleccionar la mejor calidad de video
+        // Inicializar Innertube
+        const youtube = await Innertube.create();
+
+        // Obtener la información del video
+        const info = await youtube.getInfo(videoId);
+
+        // Descargar el stream del video
+        const videoStream = await info.download({
+            type: 'video',          // Solo video
+            quality: 'best',        // La mejor calidad disponible
+            format: 'mp4'           // En formato mp4 para compatibilidad
         });
 
         const chunks = [];
@@ -33,7 +39,9 @@ exports.handler = async (event) => {
         });
 
         return new Promise((resolve, reject) => {
-            ffmpeg(videoStream)
+            const readableVideoStream = new require('stream').Readable.from(videoStream);
+
+            ffmpeg(readableVideoStream)
                 .inputOptions([`-ss ${timestamp}`])
                 .outputOptions([
                     '-vframes 1',
@@ -69,10 +77,10 @@ exports.handler = async (event) => {
         });
 
     } catch (error) {
-        console.error('Error al obtener el stream del video:', error);
+        console.error('Error al obtener la información o el stream del video:', error);
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: 'Error al obtener el stream del video de YouTube.', details: error.message }),
+            body: JSON.stringify({ error: 'Error al obtener la información del video de YouTube con youtubei.js.', details: error.message }),
         };
     }
 };
