@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analizador de Video de YouTube</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Analizador de Video</h1>
+        <div class="input-container">
+            <input type="text" id="videoUrl" placeholder="Pega una URL de YouTube (ej. /shorts/ o /watch?v=)...">
+            <button id="loadVideo">Cargar Video</button>
+        </div>
+
+        <!-- El reproductor de YouTube se insertará aquí -->
+        <div class="video-container">
+            <div id="player"></div>
+        </div>
+
+        <div class="controls-container">
+            <h2>Controles</h2>
+            <button id="playPause">Play/Pausa</button>
+            <button id="backward-sec">Retroceder 1s</button>
+            <button id="forward-sec">Avanzar 1s</button>
+            <button id="backward-frame">Retroceder 1 Frame</button>
+            <button id="forward-frame">Avanzar 1 Frame</button>
+            <button id="captureFrame">Capturar Frame</button>
+        </div>
+
+        <div class="capture-container">
+            <h2>Frame Capturado</h2>
+            <!-- El canvas se usará más adelante para mostrar la imagen del backend -->
+            <img id="capturedImage" alt="Frame capturado aparecerá aquí." style="max-width: 100%; border: 1px solid #ddd; border-radius: 4px; display: none;">
+            <a id="downloadLink" style="display: none;">Descargar Imagen</a>
+        </div>
+    </div>
+
+    <!-- API de YouTube IFrame -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <!-- Nuestro script -->
+    <script src="script.js"></script>
+</body>
+</html>
